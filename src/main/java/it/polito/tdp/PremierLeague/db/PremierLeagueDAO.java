@@ -88,5 +88,64 @@ public class PremierLeagueDAO {
 			return null;
 		}
 	}
+	public List<Match> getVertex(Integer mese){
+		String sql = "SELECT distinct m.*, t1.Name, t2.Name "
+				+ "FROM matches m, Teams t1, Teams t2 "
+				+ "WHERE MONTH(m.DATE)= ? "
+				+ "AND m.TeamHomeID = t1.TeamID AND m.TeamAwayID = t2.TeamID ";
+		List<Match> result = new ArrayList<Match>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, mese);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				
+				Match match = new Match(res.getInt("m.MatchID"), res.getInt("m.TeamHomeID"), res.getInt("m.TeamAwayID"), res.getInt("m.teamHomeFormation"), 
+							res.getInt("m.teamAwayFormation"),res.getInt("m.resultOfTeamHome"), res.getTimestamp("m.date").toLocalDateTime(), res.getString("t1.Name"),res.getString("t2.Name"));
+				
+				
+				result.add(match);
+
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 	
+	public List<Integer> getPlayer(Match m, int min){
+		String sql = "SELECT distinct a.PlayerID "
+				+ "FROM actions a, matches m "
+				+ "WHERE a.MatchID= ? "
+				+ "AND a.TimePlayed >= ? AND m.MatchID = a.MatchID";
+		List<Integer> result = new ArrayList<>();
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			
+			st.setInt(1, m.getMatchID());
+			st.setInt(2, min);
+			
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Integer player = res.getInt("PlayerID");
+				
+				result.add(player);
+			}
+			conn.close();
+			return result;
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
 }
